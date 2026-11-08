@@ -1,0 +1,34 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test
+        run: make test
+      - name: Build universal app
+        env:
+          SWIFT_QUIT_UNIVERSAL: 1
+        run: make build
+      - name: Verify app
+        run: |
+          codesign --verify --deep --strict "build/Swift Quit.app"
+          for arch in arm64 x86_64; do
+            lipo "build/Swift Quit.app/Contents/MacOS/SwiftQuit" -verify_arch "$arch"
+          done
+      - name: Package app
+        run: ditto -c -k --keepParent "build/Swift Quit.app" build/swift-quit.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: swift-quit
+          path: build/swift-quit.zip
