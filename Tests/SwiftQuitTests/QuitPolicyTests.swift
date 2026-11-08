@@ -9,11 +9,20 @@ final class QuitPolicyTests: XCTestCase {
         policy.observe(snapshot, at: start.addingTimeInterval(seconds), delay: 2, eligible: eligible)
     }
 
-    func testWindowlessLaunchNeverQuitsWithoutAnObservedWindow() {
+    func testAlreadyWindowlessAppQuitsAfterTheDelay() {
         var policy = QuitPolicy()
-        for time in [0.0, 1, 3, 10] {
-            XCTAssertFalse(sample(&policy, .empty, time))
-        }
+        XCTAssertFalse(sample(&policy, .empty, 0))
+        XCTAssertFalse(sample(&policy, .empty, 1))
+        XCTAssertTrue(sample(&policy, .empty, 2))
+    }
+
+    func testWindowlessLaunchWaitsForGracePeriodAndThenTheFullDelay() {
+        var policy = QuitPolicy()
+        XCTAssertFalse(sample(&policy, .empty, 0, eligible: false))
+        XCTAssertFalse(sample(&policy, .empty, 5, eligible: false))
+        XCTAssertFalse(sample(&policy, .empty, 6))
+        XCTAssertFalse(sample(&policy, .empty, 7))
+        XCTAssertTrue(sample(&policy, .empty, 8))
     }
 
     func testLastWindowMustStayClosedForTheWholeDelay() {

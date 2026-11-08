@@ -6,22 +6,20 @@ enum WindowSnapshot: Equatable, Sendable {
     case unknown
 }
 
-/// A quit requires an observed window followed by continuously successful,
-/// empty observations. Unavailable AX data is never evidence of a closed window.
+/// A quit requires continuously successful, empty observations after the launch
+/// grace period. Unavailable AX data is never evidence of a closed window.
 struct QuitPolicy {
-    private(set) var sawWindow = false
     private(set) var emptySince: Date?
     private(set) var requestedQuit = false
 
     mutating func observe(_ snapshot: WindowSnapshot, at now: Date,
                           delay: TimeInterval, eligible: Bool) -> Bool {
         if snapshot == .open {
-            sawWindow = true
             emptySince = nil
             requestedQuit = false
             return false
         }
-        guard eligible, snapshot == .empty, sawWindow, !requestedQuit else {
+        guard eligible, snapshot == .empty, !requestedQuit else {
             emptySince = nil
             return false
         }

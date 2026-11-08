@@ -16,7 +16,7 @@ def cask_text(version: str, digest: str) -> str:
   desc "Quit apps after their last window closes"
   homepage "https://github.com/grievouz/swift-quit"
 
-  depends_on macos: ">= :ventura"
+  depends_on macos: :ventura
 
   app "Swift Quit.app"
 
